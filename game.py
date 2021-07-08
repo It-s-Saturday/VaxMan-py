@@ -7,7 +7,7 @@ import copy
 # The goal of the game is to collect all the dots before the number of ghosts grows to 32 times the original number.
 #   original number = 4; goal is while num_ghosts < 128
 
-# TODO: 
+# TODO:
 # Each ghost that has not yet been hit multiplies itself every 30 seconds (the infection grows).
 
 
@@ -481,6 +481,8 @@ def startGame():
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
         if count >= 128:
             done = True
+            doNext("Game Over", 235, all_sprites_list, block_list,
+                   monsta_list, pacman_collide, wall_list, gate)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -567,45 +569,43 @@ def startGame():
 
         t1 = time.time()  # https://stackoverflow.com/questions/20023709/resetting-pygames-timer
         dt = t1 - t0
-
-        if dt >= 3:
-            print("3 seconds reached")
+        dupe_time = 30
+        if dt >= dupe_time:
+            print(dupe_time, "seconds reached")
             t0 = t1  # when this is called, timer goes back to 0
+
             # this is where we duplicate the list
             temp = monsta_list.copy()  # monsta_list = [1, 0]
             for monsta in temp:
                 monsta_list.add(monsta)  # monst_list = [1, 0, 1, 0]
                 all_sprites_list.add(monsta)
-                print("577")
 
-            for monsta in monsta_list:
-                monsta.update(wall_list, False)
-                print("581")
 
         else:
-            print("time elapsed is ", dt)
+            # print("time elapsed is ", dt)
+            pass
 
         text = font.render("Duplicating in: " + str(dt), True, red)
         screen.blit(text, [200, 10])
 
-        if score == bll:
-            doNext("Congratulations, you won!", 145, all_sprites_list,
-                   block_list, monsta_list, pacman_collide, wall_list, gate)
+        # if score == bll:
+        #     doNext("Congratulations, you won!", 145, all_sprites_list,
+        #            block_list, monsta_list, pacman_collide, wall_list, gate)
 
         monsta_hit_list = pygame.sprite.spritecollide(
             Pacman, monsta_list, True)  # changing to true enables dokill
 
         if monsta_hit_list:
             # grab the collided ghost and delete it from the list
-            for monsta in monsta_list:  # monsta list is a running list of current ghost alives
+            # for monsta in monsta_list:  # monsta list is a running list of current ghost alives
 
-                # list = [blinky, clyde]
-                # when the tick runs, -> [blinky, clyde, blinky, clyde]
-                # append list into itself
-                # whatever ghosts are alive duplicate
+            #     # list = [blinky, clyde]
+            #     # when the tick runs, -> [blinky, clyde, blinky, clyde]
+            #     # append list into itself
+            #     # whatever ghosts are alive duplicate
 
-                print(str(monsta.alive()) + "\n")
-            pass
+            #     print(str(monsta.alive()) + "\n")
+            print("Ghost Killed bitch")
             # doNext("Game Over", 235, all_sprites_list, block_list,
             #        monsta_list, pacman_collide, wall_list, gate)
 
@@ -613,6 +613,18 @@ def startGame():
 
         pygame.display.flip()
 
+        if len(monsta_list) == 0:
+            # pygame.time.delay(1000)
+            try:
+                for t in monsta_list:
+                    t.kill()
+                    print("for")
+            except:
+                print("Bussy")
+                pass
+            doNext("Congratulations, you won!", 145, all_sprites_list,
+                   block_list, monsta_list, pacman_collide, wall_list, gate)
+            done = True
         clock.tick(10)
 
 
