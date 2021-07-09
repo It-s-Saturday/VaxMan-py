@@ -1,6 +1,7 @@
 import pygame
 import time
 import copy
+import random
 # completed:
 # Vax-Man can kill a ghost if he comes into contact with it (vaccinates it).
 # Contact with a ghost does not kill Vax-Man.
@@ -352,10 +353,14 @@ Clyde_directions = [
     [15, 0, 9],
 ]
 
+directions = [Pinky_directions, Blinky_directions,
+              Inky_directions, Clyde_directions]
+
 pl = len(Pinky_directions)-1
 bl = len(Blinky_directions)-1
 il = len(Inky_directions)-1
 cl = len(Clyde_directions)-1
+
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
@@ -387,11 +392,21 @@ font = pygame.font.Font("freesansbold.ttf", 24)
 
 # default locations for Pacman and monstas
 w = 303-16  # Width
+i_w = 303-16-32  # Inky width
+c_w = 303+(32-16)  # Clyde width
+
 p_h = (7*60)+19  # Pacman height
 m_h = (4*60)+19  # Monster height
 b_h = (3*60)+19  # Binky height
-i_w = 303-16-32  # Inky width
-c_w = 303+(32-16)  # Clyde width
+
+pac_coord = (w, p_h)
+blink_coord = (w, b_h)
+pink_coord = (w, m_h)
+inky_coord = (i_w, m_h)
+clyd_coord = (c_w, m_h)
+
+spawnpoint_w = [w, i_w, c_w]
+spawnpoint_h = [m_h, b_h]
 
 
 def startGame():
@@ -569,23 +584,85 @@ def startGame():
 
         t1 = time.time()  # https://stackoverflow.com/questions/20023709/resetting-pygames-timer
         dt = t1 - t0
-        dupe_time = 30
+        dupe_time = 3
         if dt >= dupe_time:
             print(dupe_time, "seconds reached")
             t0 = t1  # when this is called, timer goes back to 0
 
             # this is where we duplicate the list
-            temp = monsta_list.copy()  # monsta_list = [1, 0]
-            for monsta in temp:
-                monsta_list.add(monsta)  # monst_list = [1, 0, 1, 0]
-                all_sprites_list.add(monsta)
+            for monsta in monsta_list:
+                # creating generic ghost
+                # g_turn = 0
+                # g_steps = 0
 
+                # pac_coord = (w, p_h)
+                # blink_coord = (w, b_h)
+                # pink_coord = (w, m_h)
+                # inky_coord = (i_w, m_h)
+                # clyd_coord = (c_w, m_h)
+
+                # spawnpoint_w = [w, i_w, c_w]
+                # spawnpoint_h = [m_h, b_h]
+                generic_spawn_w = random.choice(spawnpoint_w)
+                # generic_spawn_h = random.choice(spawnpoint_h)
+                if generic_spawn_w == w:
+                    generic_spawn_h = random.choice(spawnpoint_h)
+                else:
+                    generic_spawn_h = m_h
+                Generic = Ghost(generic_spawn_w, generic_spawn_h,
+                                "images/Generic.png")
+                monsta_list.add(Generic)
+                all_sprites_list.add(Generic)
+
+                generic_temp_coord = [generic_spawn_w, generic_spawn_h]
+
+                if generic_spawn_w == w and generic_spawn_h == m_h:
+                    generic_directions = Pinky_directions.copy()  # setting variable equal to array
+                    print("w, m_h", generic_directions == Pinky_directions)
+                elif generic_spawn_w == w and generic_spawn_h == b_h:
+                    generic_directions = Blinky_directions.copy()
+                    print("w, b_h", generic_directions == Blinky_directions)
+                elif generic_spawn_w == i_w:
+                    generic_directions = Inky_directions.copy()
+                    print("i_w", generic_directions == Inky_directions)
+                else:
+                    generic_directions = Clyde_directions.copy()
+                    print("c_w", generic_directions == Clyde_directions)
+
+                gl = len(generic_directions) - 1
+
+                g_turn = 0
+                g_steps = 0
+
+                returned = Generic.changespeed(
+                    generic_directions, False, g_turn, g_steps, gl)
+                g_turn = returned[0]
+                g_steps = returned[1]
+                Generic.changespeed(generic_directions,
+                                    False, g_turn, g_steps, gl)
+                # Generic.update(wall_list, False)
+
+
+# directions = [Pinky_directions, Blinky_directions,
+#               Inky_directions, Clyde_directions]
+
+# pl = len(Pinky_directions)-1
+# bl = len(Blinky_directions)-1
+# il = len(Inky_directions)-1
+# cl = len(Clyde_directions)-1
+
+                # returned = Generic.changespeed(
+                #     Generic_directions, False, g_turn, g_steps, gl)
+                # g_turn = returned[0]
+                # g_steps = returned[1]
+                # Generic.changespeed(Generic_directions, False, g_turn, g_steps, gl)
+                # Generic.update(wall_list, False)
 
         else:
             # print("time elapsed is ", dt)
             pass
 
-        text = font.render("Duplicating in: " + str(dt), True, red)
+        text = font.render("Duplicating in: " + str(round(dt, 2)), True, red)
         screen.blit(text, [200, 10])
 
         # if score == bll:
@@ -605,7 +682,7 @@ def startGame():
             #     # whatever ghosts are alive duplicate
 
             #     print(str(monsta.alive()) + "\n")
-            print("Ghost Killed bitch")
+            print("Ghost Killed")
             # doNext("Game Over", 235, all_sprites_list, block_list,
             #        monsta_list, pacman_collide, wall_list, gate)
 
