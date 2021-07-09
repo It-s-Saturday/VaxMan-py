@@ -165,10 +165,10 @@ class Player(pygame.sprite.Sprite):
         self.prev_x = x
         self.prev_y = y
     
-    def getX(self):
-        return self.prev_x
-    def getY(self):
-        return self.prev_y
+    # def getX(self):
+    #     return self.prev_x
+    # def getY(self):
+    #     return self.prev_y
     # Clear the speed of the player
     def prevdirection(self):
         self.prev_x = self.change_x
@@ -410,6 +410,7 @@ pink_coord = (w, m_h)
 inky_coord = (i_w, m_h)
 clyd_coord = (c_w, m_h)
 
+# spawnpoint_w = [w, i_w, c_w]
 spawnpoint_w = [w, i_w, c_w]
 spawnpoint_h = [m_h, b_h]
 
@@ -502,6 +503,7 @@ def startGame():
 
     gen_arr = []
     dir_arr = []
+    local_turn_steps = []
     while not done:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
 
@@ -587,6 +589,9 @@ def startGame():
         text = font.render("Score: "+str(score)+"/"+str(bll), True, red)
         screen.blit(text, [10, 10])
 
+        text = font.render("Ghosts: "+str(len(monsta_list)), True, red)
+        screen.blit(text, [0, 35])
+
         t1 = time.time()  # https://stackoverflow.com/questions/20023709/resetting-pygames-timer
         dt = t1 - t0
         dupe_time = 3
@@ -630,10 +635,12 @@ def startGame():
                     # print("i_w", generic_directions == Inky_directions)
                 else:
                     generic_directions = Clyde_directions.copy()
+                    pass
                     # print("c_w", generic_directions == Clyde_directions)
 
                 gen_arr.append(Generic)             # [Ghost1, Ghost2]
                 dir_arr.append(generic_directions)  # [Direction1, Direction2]
+                local_turn_steps.append([0,0])
 
         else:
             pass
@@ -641,19 +648,29 @@ def startGame():
         for i in range(len(gen_arr) - 1):
             Generic = gen_arr[i]
             generic_directions = dir_arr[i]
-            # print(type(Generic))
+
+            g_turn = local_turn_steps[i][0]
+            g_steps = local_turn_steps[i][1]
 
             gl = len(generic_directions) - 1
 
             try:
                 returned = Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
-                g_turn = returned[0]
-                g_steps = returned[1]
+                local_turn_steps[i][0] = returned[0]
+                local_turn_steps[i][1] = returned[1]
+                g_turn = local_turn_steps[i][0]
+                g_steps = local_turn_steps[i][1]
                 Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
                 Generic.update(wall_list, False)
             except:
-                # print("passed")
-                pass
+                print("except")
+                returned = Generic.changespeed(generic_directions, "clyde", g_turn, g_steps, gl)
+                local_turn_steps[i][0] = returned[0]
+                local_turn_steps[i][1] = returned[1]
+                g_turn = local_turn_steps[i][0]
+                g_steps = local_turn_steps[i][1]
+                Generic.changespeed(generic_directions, "clyde", g_turn, g_steps, gl)
+                Generic.update(wall_list, False)
 
         text = font.render("Duplicating in: " + str(round(dt, 2)), True, red)
         screen.blit(text, [200, 10])
