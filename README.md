@@ -7,3 +7,5 @@ Goals:
   - The game ends when the number of ghosts exceeds 128
 
 <img src="walkthrough.gif">
+
+Original Pacman: https://github.com/hbokmann/Pacman
