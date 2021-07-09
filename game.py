@@ -16,9 +16,8 @@ import random
 # Each ghost that has not yet been hit multiplies itself every 30 seconds (the infection grows).
 # Duplicated ghosts have to be able to move
 
-#TODO (later):
+# TODO (later):
 # fix overlapping
-
 
 
 black = (0, 0, 0)
@@ -172,7 +171,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.left = x
         self.prev_x = x
         self.prev_y = y
-    
+
     # def getX(self):
     #     return self.prev_x
     # def getY(self):
@@ -451,7 +450,7 @@ def startGame():
     g_turn = 0
     g_steps = 0
     # Create the player paddle object
-    Pacman = Player(w, p_h, "images/Trollman.png")
+    Pacman = Player(w, p_h, "images/pacman.png")
     all_sprites_list.add(Pacman)
     pacman_collide.add(Pacman)
 
@@ -610,7 +609,6 @@ def startGame():
             for monsta in monsta_list:
                 # creating generic ghost
 
-
                 # blink_coord = (w, b_h)
                 # pink_coord = (w, m_h)
                 # inky_coord = (i_w, m_h)
@@ -632,7 +630,7 @@ def startGame():
 
                 # generic_temp_coord = [generic_spawn_w, generic_spawn_h]
 
-                if generic_spawn_w == w and generic_spawn_h == m_h: # Pinky
+                if generic_spawn_w == w and generic_spawn_h == m_h:  # Pinky
                     generic_directions = Pinky_directions.copy()  # setting variable equal to array
                     # print("w, m_h", generic_directions == Pinky_directions)
                 elif generic_spawn_w == w and generic_spawn_h == b_h:
@@ -648,7 +646,7 @@ def startGame():
 
                 gen_arr.append(Generic)             # [Ghost1, Ghost2]
                 dir_arr.append(generic_directions)  # [Direction1, Direction2]
-                local_turn_steps.append([0,0])
+                local_turn_steps.append([0, 0])
 
         else:
             pass
@@ -663,21 +661,25 @@ def startGame():
             gl = len(generic_directions) - 1
 
             try:
-                returned = Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
+                returned = Generic.changespeed(
+                    generic_directions, False, g_turn, g_steps, gl)
                 local_turn_steps[i][0] = returned[0]
                 local_turn_steps[i][1] = returned[1]
                 g_turn = local_turn_steps[i][0]
                 g_steps = local_turn_steps[i][1]
-                Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
+                Generic.changespeed(generic_directions,
+                                    False, g_turn, g_steps, gl)
                 Generic.update(wall_list, False)
             except:
                 print("except")
-                returned = Generic.changespeed(generic_directions, "clyde", g_turn, g_steps, gl)
+                returned = Generic.changespeed(
+                    generic_directions, "clyde", g_turn, g_steps, gl)
                 local_turn_steps[i][0] = returned[0]
                 local_turn_steps[i][1] = returned[1]
                 g_turn = local_turn_steps[i][0]
                 g_steps = local_turn_steps[i][1]
-                Generic.changespeed(generic_directions, "clyde", g_turn, g_steps, gl)
+                Generic.changespeed(generic_directions,
+                                    "clyde", g_turn, g_steps, gl)
                 Generic.update(wall_list, False)
 
         text = font.render("Duplicating in: " + str(round(dt, 2)), True, red)
@@ -689,7 +691,6 @@ def startGame():
         if monsta_hit_list:
 
             print("Ghost Killed")
-
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
