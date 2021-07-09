@@ -1,15 +1,16 @@
 import pygame
 import time
-import copy
+from copy import copy, deepcopy
 import random
 # completed:
 # Vax-Man can kill a ghost if he comes into contact with it (vaccinates it).
 # Contact with a ghost does not kill Vax-Man.
 # The goal of the game is to collect all the dots before the number of ghosts grows to 32 times the original number.
 #   original number = 4; goal is while num_ghosts < 128
+# Each ghost that has not yet been hit multiplies itself every 30 seconds (the infection grows).
 
 # TODO:
-# Each ghost that has not yet been hit multiplies itself every 30 seconds (the infection grows).
+# Duplicated ghosts have to be able to move
 
 
 black = (0, 0, 0)
@@ -163,7 +164,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.left = x
         self.prev_x = x
         self.prev_y = y
-
+    
+    def getX(self):
+        return self.prev_x
+    def getY(self):
+        return self.prev_y
     # Clear the speed of the player
     def prevdirection(self):
         self.prev_x = self.change_x
@@ -434,6 +439,8 @@ def startGame():
     c_turn = 0
     c_steps = 0
 
+    g_turn = 0
+    g_steps = 0
     # Create the player paddle object
     Pacman = Player(w, p_h, "images/Trollman.png")
     all_sprites_list.add(Pacman)
@@ -492,9 +499,13 @@ def startGame():
 
     i = 0
     t0 = time.time()
-    while done == False:
+
+    gen_arr = []
+    dir_arr = []
+    while not done:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
-        if count >= 128:
+
+        if len(monsta_list) >= 128:
             done = True
             doNext("Game Over", 235, all_sprites_list, block_list,
                    monsta_list, pacman_collide, wall_list, gate)
@@ -576,26 +587,17 @@ def startGame():
         text = font.render("Score: "+str(score)+"/"+str(bll), True, red)
         screen.blit(text, [10, 10])
 
-        # seconds = (pygame.time.get_ticks()-start_ticks) / 1000  # calculate how many seconds
-        # if seconds >= 2:  # if more than 10 seconds close the game
-        #   seconds = 0
-        # # print(seconds)  # print how many seconds
-        # print(seconds)
-
         t1 = time.time()  # https://stackoverflow.com/questions/20023709/resetting-pygames-timer
         dt = t1 - t0
         dupe_time = 3
         if dt >= dupe_time:
             print(dupe_time, "seconds reached")
-            t0 = t1  # when this is called, timer goes back to 0
+            t0 = t1  # when this is called, timer goes back to "0"
 
-            # this is where we duplicate the list
             for monsta in monsta_list:
                 # creating generic ghost
-                # g_turn = 0
-                # g_steps = 0
 
-                # pac_coord = (w, p_h)
+
                 # blink_coord = (w, b_h)
                 # pink_coord = (w, m_h)
                 # inky_coord = (i_w, m_h)
@@ -603,101 +605,76 @@ def startGame():
 
                 # spawnpoint_w = [w, i_w, c_w]
                 # spawnpoint_h = [m_h, b_h]
+
                 generic_spawn_w = random.choice(spawnpoint_w)
-                # generic_spawn_h = random.choice(spawnpoint_h)
                 if generic_spawn_w == w:
                     generic_spawn_h = random.choice(spawnpoint_h)
                 else:
                     generic_spawn_h = m_h
+
                 Generic = Ghost(generic_spawn_w, generic_spawn_h,
                                 "images/Generic.png")
                 monsta_list.add(Generic)
                 all_sprites_list.add(Generic)
 
-                generic_temp_coord = [generic_spawn_w, generic_spawn_h]
+                # generic_temp_coord = [generic_spawn_w, generic_spawn_h]
 
-                if generic_spawn_w == w and generic_spawn_h == m_h:
+                if generic_spawn_w == w and generic_spawn_h == m_h: # Pinky
                     generic_directions = Pinky_directions.copy()  # setting variable equal to array
-                    print("w, m_h", generic_directions == Pinky_directions)
+                    # print("w, m_h", generic_directions == Pinky_directions)
                 elif generic_spawn_w == w and generic_spawn_h == b_h:
                     generic_directions = Blinky_directions.copy()
-                    print("w, b_h", generic_directions == Blinky_directions)
+                    # print("w, b_h", generic_directions == Blinky_directions)
                 elif generic_spawn_w == i_w:
                     generic_directions = Inky_directions.copy()
-                    print("i_w", generic_directions == Inky_directions)
+                    # print("i_w", generic_directions == Inky_directions)
                 else:
                     generic_directions = Clyde_directions.copy()
-                    print("c_w", generic_directions == Clyde_directions)
+                    # print("c_w", generic_directions == Clyde_directions)
 
-                gl = len(generic_directions) - 1
-
-                g_turn = 0
-                g_steps = 0
-
-                returned = Generic.changespeed(
-                    generic_directions, False, g_turn, g_steps, gl)
-                g_turn = returned[0]
-                g_steps = returned[1]
-                Generic.changespeed(generic_directions,
-                                    False, g_turn, g_steps, gl)
-                # Generic.update(wall_list, False)
-
-
-# directions = [Pinky_directions, Blinky_directions,
-#               Inky_directions, Clyde_directions]
-
-# pl = len(Pinky_directions)-1
-# bl = len(Blinky_directions)-1
-# il = len(Inky_directions)-1
-# cl = len(Clyde_directions)-1
-
-                # returned = Generic.changespeed(
-                #     Generic_directions, False, g_turn, g_steps, gl)
-                # g_turn = returned[0]
-                # g_steps = returned[1]
-                # Generic.changespeed(Generic_directions, False, g_turn, g_steps, gl)
-                # Generic.update(wall_list, False)
+                gen_arr.append(Generic)             # [Ghost1, Ghost2]
+                dir_arr.append(generic_directions)  # [Direction1, Direction2]
 
         else:
-            # print("time elapsed is ", dt)
             pass
+
+        for i in range(len(gen_arr) - 1):
+            Generic = gen_arr[i]
+            generic_directions = dir_arr[i]
+            # print(type(Generic))
+
+            gl = len(generic_directions) - 1
+
+            try:
+                returned = Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
+                g_turn = returned[0]
+                g_steps = returned[1]
+                Generic.changespeed(generic_directions, False, g_turn, g_steps, gl)
+                Generic.update(wall_list, False)
+            except:
+                # print("passed")
+                pass
 
         text = font.render("Duplicating in: " + str(round(dt, 2)), True, red)
         screen.blit(text, [200, 10])
-
-        # if score == bll:
-        #     doNext("Congratulations, you won!", 145, all_sprites_list,
-        #            block_list, monsta_list, pacman_collide, wall_list, gate)
 
         monsta_hit_list = pygame.sprite.spritecollide(
             Pacman, monsta_list, True)  # changing to true enables dokill
 
         if monsta_hit_list:
-            # grab the collided ghost and delete it from the list
-            # for monsta in monsta_list:  # monsta list is a running list of current ghost alives
 
-            #     # list = [blinky, clyde]
-            #     # when the tick runs, -> [blinky, clyde, blinky, clyde]
-            #     # append list into itself
-            #     # whatever ghosts are alive duplicate
-
-            #     print(str(monsta.alive()) + "\n")
             print("Ghost Killed")
-            # doNext("Game Over", 235, all_sprites_list, block_list,
-            #        monsta_list, pacman_collide, wall_list, gate)
+
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
         pygame.display.flip()
 
         if len(monsta_list) == 0:
-            # pygame.time.delay(1000)
             try:
                 for t in monsta_list:
                     t.kill()
-                    print("for")
             except:
-                print("Bussy")
                 pass
             doNext("Congratulations, you won!", 145, all_sprites_list,
                    block_list, monsta_list, pacman_collide, wall_list, gate)
